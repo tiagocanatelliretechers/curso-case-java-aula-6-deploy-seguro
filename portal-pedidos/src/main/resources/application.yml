@@ -1,6 +1,6 @@
 # =====================================================================
-# Estado apos a AULA 5 (error handling + testes).
-# Corrigido: error.* generico. AINDA vulneravel: Actuator/H2 abertos (Aula 6).
+# Portal de Pedidos B2B - configuracao ENDURECIDA (branch solucao-hardened)
+# Aplica as correcoes das Aulas 2-6. Perfil default = H2 (dev).
 # =====================================================================
 spring:
   application:
@@ -26,17 +26,17 @@ spring:
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
 
-  # A05 - ainda habilitado (corrigido na Aula 6)
+  # Lab 6.1 - H2 console desabilitado
   h2:
     console:
-      enabled: true
-      path: /h2-console
+      enabled: false
 
   thymeleaf:
     cache: false
 
   servlet:
     multipart:
+      # Lab 2.4 - limite de upload
       max-file-size: 5MB
       max-request-size: 6MB
 
@@ -45,9 +45,9 @@ server:
   servlet:
     session:
       cookie:
-        # Lab 4.3 - flags de seguranca do cookie
+        # Lab 4.3 - flags de seguranca do cookie de sessao
         http-only: true
-        secure: false        # DEV ONLY (sem HTTPS local)
+        secure: false        # DEV ONLY (sem HTTPS local). Em producao: true
         same-site: lax
       timeout: 15m
   error:
@@ -55,24 +55,29 @@ server:
     include-message: never
     include-stacktrace: never
     include-exception: false
+    include-binding-errors: never
 
-# A05 - Actuator ainda totalmente exposto (corrigido na Aula 6)
+# Lab 6.1 - Actuator minimo; endpoints sensiveis protegidos no SecurityConfig
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info
   endpoint:
     health:
-      show-details: always
+      show-details: never
     env:
-      show-values: always
+      show-values: never
 
+# ---------------------------------------------------------------------
+# Segredos: em producao vem de variavel de ambiente / secrets manager.
+# Os defaults abaixo sao DEV ONLY e NAO devem ser usados em producao.
+# ---------------------------------------------------------------------
 portal:
   jwt:
     # Lab 4.2 - chave Base64 (>=32 bytes). Override: PORTAL_JWT_SECRET
     secret: ${PORTAL_JWT_SECRET:AyjpJmIAw5EyzdygA5Ydd2vm8pp5Sqed7wDAk6MFKbY=}
-    expiration-ms: 900000
+    expiration-ms: 900000    # 15 min
   crypto:
     # Lab 4.1 - chave Base64 de 32 bytes (AES-256). Override: PORTAL_CRYPTO_KEY
     key: ${PORTAL_CRYPTO_KEY:cMlQRds5K9r42D8FYoxCQhM/vdyxStTh1Ew+OsG9Gjs=}
