@@ -30,7 +30,7 @@ jobs:
       # 1) Relatório COMPLETO (não derruba o build) — para a turma ver tudo,
       #    de LOW a CRITICAL, no log do job.
       - name: Trivy — relatório completo (informativo)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: fs
           scanners: vuln,misconfig,secret
@@ -41,7 +41,7 @@ jobs:
       # 2) O GATE: falha o build se houver vulnerabilidade/má-config
       #    HIGH ou CRITICAL. É o "shift-left": o inseguro não passa sozinho.
       - name: Gate — reprova em HIGH/CRITICAL
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: fs
           scanners: vuln,misconfig,secret
