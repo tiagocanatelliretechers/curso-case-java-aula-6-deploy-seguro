@@ -1,0 +1,50 @@
+# =====================================================================
+# Aula 6 — Gate de segurança na NUVEM (GitHub Actions).
+# Roda sozinho a cada push / pull request. Nada para instalar na máquina.
+#
+#   • baseline (branch main)  -> fica VERMELHO (acha a CVE Text4Shell no
+#     commons-text 1.9 e o Dockerfile rodando como root)
+#   • hardened (branch hardened) -> fica VERDE (nada crítico)
+#
+# Para rodar no seu fork: aba "Actions" -> "I understand... enable" ->
+# ou botão "Run workflow" (workflow_dispatch).
+# =====================================================================
+name: security-gate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:      # habilita o botão "Run workflow" na aba Actions
+
+permissions:
+  contents: read
+
+jobs:
+  trivy:
+    name: Trivy — dependências + Dockerfile (gate shift-left)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 1) Relatório COMPLETO (não derruba o build) — para a turma ver tudo,
+      #    de LOW a CRITICAL, no log do job.
+      - name: Trivy — relatório completo (informativo)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,misconfig,secret
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          format: table
+          exit-code: '0'
+
+      # 2) O GATE: falha o build se houver vulnerabilidade/má-config
+      #    HIGH ou CRITICAL. É o "shift-left": o inseguro não passa sozinho.
+      - name: Gate — reprova em HIGH/CRITICAL
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,misconfig,secret
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: '1'
